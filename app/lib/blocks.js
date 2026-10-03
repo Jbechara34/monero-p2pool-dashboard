@@ -77,13 +77,24 @@ let state = {
   blocks: [], // { height, hash, detectedAt, raw }
   workers: {}, // { [name]: { shares, firstSeen, lastSeen } }
   shares: [], // newest first: { detectedAt, name, difficulty, sidechainHeight, effort }
-  // True from each p2pool (re)start until p2pool logs "SYNCHRONIZED". While
-  // the sidechain is still syncing (always the case right after switching
-  // pool type), p2pool judges stratum shares against a bootstrap difficulty
-  // and prints "SHARE FOUND" for ordinary low-difficulty shares that were
-  // never real sidechain shares - so those lines are ignored.
-  syncing: false,
+  // Log timestamp of the latest p2pool (re)start, or null once it's treated
+  // as synced. Right after a restart (always the case when switching pool
+  // type) p2pool prints "SHARE FOUND" for ordinary low-difficulty shares that
+  // were never real sidechain shares, so SHARE FOUND lines are ignored for
+  // SYNC_GRACE_MS after a restart. p2pool only prints "SYNCHRONIZED" in one
+  // special case (jumping to an alternative chain), not on every start, so
+  // that can't be relied on to end the grace period - the timeout does.
+  syncingSince: null,
+  // Running total of every real share ever logged here - the share list is
+  // capped at MAX_SHARES, this isn't. Seeded from the list on first load.
+  lifetimeShares: null,
 };
+const SYNC_GRACE_MS = 10 * 60 * 1000;
+
+function logTime(ts) {
+  const t = Date.parse(String(ts).replace(' ', 'T'));
+  return Number.isNaN(t) ? null : t;
+}
 
 async function loadState() {
   try {
@@ -141,11 +152,11 @@ function parseLine(line) {
   const detectedAt = tsMatch ? tsMatch[1] : new Date().toISOString();
 
   if (/\[entrypoint\] starting: p2pool/i.test(line)) {
-    state.syncing = true;
+    state.syncingSince = detectedAt;
     return;
   }
-  if (/\bSYNCHRONIZED\b/.test(line)) {
-    state.syncing = false;
+  if (/SYNCHRONIZED/.test(line)) {
+    state.syncingSince = null;
     return;
   }
 
@@ -166,7 +177,12 @@ function parseLine(line) {
   }
 
   if (/SHARE FOUND/i.test(line)) {
-    if (state.syncing) return;
+    if (state.syncingSince) {
+      const since = logTime(state.syncingSince);
+      const now = logTime(detectedAt);
+      if (since !== null && now !== null && now - since < SYNC_GRACE_MS) return;
+      state.syncingSince = null;
+    }
     const userMatch = line.match(SHARE_FOUND_RE);
     const name = userMatch ? userMatch[1] : 'unknown';
     const diffMatch = line.match(SHARE_DIFF_RE);
@@ -189,6 +205,7 @@ function parseLine(line) {
 
     const heightMatch = line.match(SHARE_SIDECHAIN_HEIGHT_RE);
     const effortMatch = line.match(SHARE_EFFORT_RE);
+    state.lifetimeShares = (state.lifetimeShares ?? (state.shares || []).length) + 1;
     state.shares = [
       {
         detectedAt,
@@ -235,7 +252,7 @@ async function pollOnce() {
     for (const line of lines) {
       if (!line.trim()) continue;
       if (/BLOCK FOUND/i.test(line)) blockFound = true;
-      if (/BLOCK FOUND|SHARE FOUND|\[entrypoint\] starting: p2pool|\bSYNCHRONIZED\b/i.test(line)) {
+      if (/BLOCK FOUND|SHARE FOUND|\[entrypoint\] starting: p2pool|SYNCHRONIZED/i.test(line)) {
         parseLine(line);
         dirty = true;
       }
@@ -269,6 +286,10 @@ function getShares() {
   return state.shares || [];
 }
 
+function getLifetimeShares() {
+  return state.lifetimeShares ?? (state.shares || []).length;
+}
+
 function getWorkers() {
   const now = Date.now();
   return Object.entries(state.workers).map(([name, w]) => ({
@@ -282,4 +303,4 @@ function getWorkers() {
   }));
 }
 
-module.exports = { start, getBlocks, getShares, getWorkers, LOG_FILE };
+module.exports = { start, getBlocks, getShares, getLifetimeShares, getWorkers, LOG_FILE };

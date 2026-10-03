@@ -1,11 +1,10 @@
 # Triple X
 
-**Status: Alpha (`v1.0-AlphaN`).** Past the numbered `Dev` builds now — the
-app is feature-complete enough for wider testing, but still expect rough
-edges. The on-screen version badge always shows exactly what's running.
-**Current build `v1.0-Alpha16` is confirmed stable** — deployed and verified
-on a live 5tratumOS install, no known crash loops or degraded-status issues.
-See the [release notes](https://github.com/Silver765/Triple-X/releases/tag/v1.0-Alpha16).
+**Status: Release Candidate (`v1.2-RC1`).** Feature-complete and past the
+`v1.0-AlphaN` builds, but still a release candidate — expect the odd rough
+edge. The on-screen version badge always shows exactly what's running.
+`v1.0-Alpha16` was the last build confirmed stable on a live 5tratumOS
+install; RC1 builds on it with the Pool/Blocks tab changes.
 
 A self-hosted Monero full node + [P2Pool](https://github.com/SChernykh/p2pool)
 node, built from source, with optional Tari (XTM) merge-mining, Monero/Tari

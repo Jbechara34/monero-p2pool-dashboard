@@ -554,6 +554,7 @@ async function refreshAll() {
   setText('pv-blocks-shares-found', fmtDifficulty(pool.shares?.found));
   setText('pv-blocks-shares-failed', fmtDifficulty(pool.shares?.failed));
 
+  setText('pv-lifetime-shares', sharesLogData?.lifetime != null ? fmtDifficulty(sharesLogData.lifetime) : '—');
   const sharesLogBody = document.getElementById('pv-shares-log-body');
   if (sharesLogBody) {
     const shareList = (sharesLogData?.shares || []).slice(0, 50);
