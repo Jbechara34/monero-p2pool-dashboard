@@ -740,7 +740,8 @@
         <div class="v1-stat-row">
           <div><div class="v1-big" style="font-size:18px" id="pv-blocks-shares-found">—</div><div class="v1-sub">Your Shares</div></div>
           <div><div class="v1-big" style="font-size:18px" id="pv-blocks-shares-failed">—</div><div class="v1-sub">Failed Shares</div></div>
-          <div><div class="v1-big" style="font-size:18px" id="pv-lifetime-shares">—</div><div class="v1-sub">Your Lifetime Shares (tracked here)</div></div>
+          <div><div class="v1-big" style="font-size:18px" id="pv-lifetime-shares">—</div><div class="v1-sub" id="pv-lifetime-label">Your Lifetime Shares (tracked here)</div></div>
+          <div><div class="v1-big" style="font-size:14px" id="pv-last-share-found">—</div><div class="v1-sub">Your Last Share</div></div>
         </div>
         <!-- Log of each P2Pool share this node found, newest first - parsed
              from p2pool's "SHARE FOUND" log lines, so only shares found since
@@ -751,16 +752,11 @@
             <tbody id="pv-shares-log-body"><tr><td colspan="5" class="pv-empty">No shares found yet.</td></tr></tbody>
           </table>
         </div>
-        <!-- P2Pool Observer stats (only shown when enabled in Settings) -->
-        <div id="pv-observer-card" style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
-          <div class="v1-label">P2Pool Observer <span class="badge-experimental">3rd-party</span></div>
-          <div class="v1-stat-row">
-            <div><div class="v1-big" style="font-size:18px" id="pv-observer-miners">—</div><div class="v1-sub">Miners (network)</div></div>
-            <div><div class="v1-big" style="font-size:18px" id="pv-observer-shares">—</div><div class="v1-sub">Your lifetime shares (Observer)</div></div>
-            <div><div class="v1-big" style="font-size:14px" id="pv-observer-last-share">—</div><div class="v1-sub">Your last share</div></div>
-          </div>
-          <div class="v1-sub" style="margin-top:8px;" id="pv-observer-versions">—</div>
-          <a id="pv-observer-link" href="#" target="_blank" rel="noopener" class="v1-sub">View full history on p2pool.observer</a>
+        <!-- Optional P2Pool Observer footer (only shown when enabled in Settings);
+             its lifetime count feeds the Lifetime Shares tile above. -->
+        <div id="pv-observer-card" class="v1-sub" style="display:none; margin-top:10px;">
+          <span id="pv-observer-versions">—</span> <span class="badge-experimental">3rd-party</span> ·
+          <a id="pv-observer-link" href="#" target="_blank" rel="noopener">View full history on p2pool.observer</a>
         </div>
       </div>
 

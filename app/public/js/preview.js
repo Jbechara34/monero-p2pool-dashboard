@@ -554,7 +554,21 @@ async function refreshAll() {
   setText('pv-blocks-shares-found', fmtDifficulty(pool.shares?.found));
   setText('pv-blocks-shares-failed', fmtDifficulty(pool.shares?.failed));
 
-  setText('pv-lifetime-shares', sharesLogData?.lifetime != null ? fmtDifficulty(sharesLogData.lifetime) : '—');
+  // Lifetime tile: prefer p2pool.observer's count when enabled (it covers
+  // shares from before this dashboard tracked them), else our own counter.
+  const obs = pool.observer && !pool.observer.error ? pool.observer : null;
+  const obsTotal = obs?.yourShares?.totalShares;
+  if (obsTotal != null) {
+    setText('pv-lifetime-shares', fmtDifficulty(obsTotal));
+    setText('pv-lifetime-label', 'Your Lifetime Shares (Observer)');
+  } else {
+    setText('pv-lifetime-shares', sharesLogData?.lifetime != null ? fmtDifficulty(sharesLogData.lifetime) : '—');
+    setText('pv-lifetime-label', 'Your Lifetime Shares (tracked here)');
+  }
+  const lastLogged = (sharesLogData?.shares || [])[0]?.detectedAt;
+  const lastObs = obs?.yourShares?.lastShareAt;
+  const lastShare = Math.max(lastLogged ? new Date(lastLogged).getTime() : 0, lastObs ? new Date(lastObs).getTime() : 0);
+  setText('pv-last-share-found', lastShare ? fmtTime(lastShare) : '—');
   const sharesLogBody = document.getElementById('pv-shares-log-body');
   if (sharesLogBody) {
     const shareList = (sharesLogData?.shares || []).slice(0, 50);
@@ -675,9 +689,6 @@ async function refreshAll() {
     const showObserver = !!(observer && !observer.error);
     observerCard.style.display = showObserver ? '' : 'none';
     if (showObserver) {
-      setText('pv-observer-miners', observer.globalMiners ?? '—');
-      setText('pv-observer-shares', observer.yourShares?.totalShares ?? '—');
-      setText('pv-observer-last-share', observer.yourShares?.lastShareAt ? fmtTime(observer.yourShares.lastShareAt) : '—');
       setText('pv-observer-versions', `P2Pool ${observer.p2poolVersion || '—'} · Monero ${observer.moneroVersion || '—'}`);
       const link = document.getElementById('pv-observer-link');
       if (link) link.href = observer.explorerUrl || '#';
